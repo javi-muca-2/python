@@ -88,11 +88,18 @@ def test_make_random_dna_strand():
     assert first_ones.make_random_dna_strand(5) == "TTAGC"
 
 
-# 13
+# 13 a mi me gusta con el stop, ok?
 def test_get_first_substr():
     assert first_ones.get_first_substr("KLZMHOSMTIA*") == (3, 11, "MHOSMTIA*")
 
 
-# 13.regex
+# 13.a regex
 def test_get_first_substr_regex():
-    assert 0 == 0
+    assert first_ones.get_first_substr_regex(
+        "KLZMHOSMTIA*") == (3, 11, "MHOSMTIA")
+
+
+# 13.b all matches
+def test_get_first_substr_regex_matches():
+    assert first_ones.get_first_substr_regex_match(
+        'MA*MA*MA*') == [(0, 2, 'MA'), (3, 5, 'MA'), (6, 8, 'MA')]

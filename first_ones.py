@@ -5,6 +5,7 @@ import re
 import copy
 import collections
 import random
+from typing import Tuple, List
 import amino_dicts
 
 
@@ -210,7 +211,7 @@ def make_random_dna_strand(length_in: int) ->str:
 
 
 # 13
-def get_first_substr(amino_seq_in: str)-> {}:
+def get_first_substr(amino_seq_in: str)-> Tuple[int, int, str]:
     "Returns the index of the first met, stop and the substring between them"
     met_indx = amino_seq_in.index('M')
     stop_indx = amino_seq_in.index('*', met_indx)
@@ -218,22 +219,68 @@ def get_first_substr(amino_seq_in: str)-> {}:
     return met_indx, stop_indx, substr
 
 
-# 13 con regex
-def get_first_substr_regex(amino_seq_in: str)-> {}:
+# 13.a con regex
+def get_first_substr_regex(amino_seq_in: str)-> Tuple[int, int, str]:
     "Returns the index of the first met, stop and the substring between them"
-    patt = r'^[M]'
-    #result = re.match(patt, amino_seq_in)
-    re.search("M", amino_seq_in).start()
-    return dict(amino_seq_in)
+    reg = r'''
+    (         # Starts group 1.
+        M         # Amino sequences start with an 'M' (Met).
+        [^*]      # Character class: Any char that is not *.
+        *         # The previous character class zero or more times.
+    )         # Ends group 1.
+    \*        # A Stop = A literal *. Needs backslash.
+    '''
+    reg = r'(M[^*]*)\*'
+    pat = re.compile(reg)
+
+    match = pat.search(amino_seq_in)
+
+    if not match:
+        raise ValueError("Incorrect amino acid sequence!")
+
+    met_indx = match.start(1)
+    stp_indx = match.end(1)
+    substr = match.group(1)
+
+    res = (met_indx, stp_indx, substr)
+    return res
 
 
-# 13 con regex y devolviendo all matches
-def get_first_substr_regex_2(amino_seq_in: str)-> {}:
-    "Returns the index of the first met, stop and the substring between them"
-    return dict(amino_seq_in)
+# 13.b con regex y devolviendo all matches
+def get_first_substr_regex_match(amino_seq_in: str)-> List[Tuple[int, int, str]]:
+    "Returns the index of the first met, stop and the substring between them, all matches"
+    reg = r'''
+                # Empty string! It always matches in all positions!
+    (?=       # Start Lookahead. Not stored in any group.
+        (         # Starts group 1.
+        M         # Amino sequences start with an 'M' (Met).
+        [^*]      # Character class: Any char that is not *.
+        *         # The previous character class zero or more times.
+        )         # Ends group 1.
+          \*        # A Stop = A literal *. Needs backslash.
+        )         # Ends of Lookahead.
+    '''
+
+    reg = r'(?=(M[^*]*)\*)'
+    pat = re.compile(reg, re.VERBOSE)
+    matches = pat.finditer(amino_seq_in)
+
+    res = [(m.start(1), m.end(1), m.group(1)) for m in matches]
+    return res
 
 
 # 14
-def read_fasta(filename_in: str):
+def read_fasta(filename_in: str) -> str:
     "Reads a fasta file returns a string with the nucleotids"
-    return filename_in
+    with open(filename_in, 'r') as fasta_file:
+        txt = fasta_file.read()
+    reg = r'^>.*?\n([ATCGN\n]*$)'
+    pat = re.compile(reg)
+    match = pat.search(txt)
+
+    if not match:
+        raise ValueError(f'Invalid DNA string in {filename_in}')
+
+    dna_nl_str = match.group(1)
+    dna_str = dna_nl_str.replace('\n', '')
+    return dna_str
