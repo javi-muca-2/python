@@ -221,8 +221,9 @@ def get_first_substr(amino_seq_in: str)-> {}:
 # 13 con regex
 def get_first_substr_regex(amino_seq_in: str)-> {}:
     "Returns the index of the first met, stop and the substring between them"
-    #patt = r''
-
+    patt = r'^[M]'
+    #result = re.match(patt, amino_seq_in)
+    re.search("M", amino_seq_in).start()
     return dict(amino_seq_in)
 
 
